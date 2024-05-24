@@ -1,24 +1,43 @@
 #include <Arduino.h>
+
+#ifdef ESP32
+#include <AsyncTCP.h>
 #include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+#endif
+#include <ESPAsyncWebServer.h>
+
 #include <Wire.h>
 
 // button
 #include <InputDebounce.h>
-
 #define BUTTON_DEBOUNCE_DELAY DEFAULT_INPUT_DEBOUNCE_DELAY // [ms]
 
 // other stuff
 #include <time.h>
 
 #include "address-light.h"
-#include "clock/clock.h"
-#include "config/configdata.h"
+#include "clock.h"
+#include "configdata.h"
+
+AsyncWebServer server(80);
+
+void doAccessPointSetup(AsyncWebServer server);
+void doStationSetup(AsyncWebServer server);
 
 WIFI_MODE wifiMode = WIFI_MODE::UNKNOWN;
 
 InputDebounce toggleButton;
 
 const char *ntpServer = "pool.ntp.org";
+
+// Alarm interrupt flag must be volatile
+volatile bool lightState = false;
+
+// Alarm interrupt flag must be volatile
+volatile bool manualLightState = false;
 
 // do nothing on button down
 void toggleButton_pressedCallback(uint8_t pinIn) {}
@@ -43,44 +62,8 @@ void toggleButton_releasedCallback(uint8_t pinIn) {
   Serial.printf("lightState == %d\n", lightState);
 }
 
-void doAccessPointSetup() { Serial.println("Inside AP setup..."); }
-
-// for now
-const char *ssid = "HouseOnHill";
-const char *password = "Marvel2021";
-
-void doStationSetup() {
-  Serial.println("Inside STA setup...");
-
-  // Connect to Wi-Fi
-  Serial.print("Connecting to ");
-  Serial.println(configData.ssid);
-  WiFi.begin(configData.ssid, configData.key);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  WiFi.enableIPv6();
-  Serial.println("");
-  Serial.println("WiFi connected.");
-
-  Serial.println(WiFi.localIP());
-
-  // Setup the button that lets us toggle the light
-  toggleButton.registerCallbacks(toggleButton_pressedCallback,
-                                 toggleButton_releasedCallback);
-
-  toggleButton.setup(USER_BUTTON_PIN, BUTTON_DEBOUNCE_DELAY,
-                     InputDebounce::PIM_EXT_PULL_UP_RES);
-
-  initializeClock();
-  initializeTime(configData.timezoneOffset, configData.timezoneAdjustment,
-                 ntpServer);
-
-  initializeAlarms();
-  setAlarm();
-
-  Serial.println(F("Setup complete, running in station mode..."));
+void notFound(AsyncWebServerRequest *request) {
+  request->send(404, "text/plain", "Not found");
 }
 
 void setup() {
@@ -139,11 +122,29 @@ void setup() {
     // if we're in AP mode then we really don't do much
     // just setup soft AP mode and wire up the WIFI
     // config index.html
-    doAccessPointSetup();
+    doAccessPointSetup(server);
+
+    Serial.println(F("Setup complete, running in ap mode..."));
   } else if (wifiMode == WIFI_MODE::STA) {
     // otherwise we're in station mode, so wire up the
     // device configuration index.html
-    doStationSetup();
+    doStationSetup(server);
+
+    // Setup the button that lets us toggle the light
+    toggleButton.registerCallbacks(toggleButton_pressedCallback,
+                                   toggleButton_releasedCallback);
+
+    toggleButton.setup(USER_BUTTON_PIN, BUTTON_DEBOUNCE_DELAY,
+                       InputDebounce::PIM_EXT_PULL_UP_RES);
+
+    initializeClock();
+    initializeTime(configData.timezoneOffset, configData.timezoneAdjustment,
+                   ntpServer);
+
+    initializeAlarms();
+    setAlarm();
+
+    Serial.println(F("Setup complete, running in station mode..."));
   } else {
     Serial.println("We don't have a wifi mode set");
     return;

@@ -1,9 +1,5 @@
 {
-  "files.exclude": {
-    "build/**": true
-  },
-  "files.associations": {
-    "*.vcf": "tsv",
-    "calculations.c": "cpp"
+  "search.exclude": {
+    "**/build": true
   }
 }

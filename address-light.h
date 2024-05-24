@@ -4,10 +4,10 @@
 typedef enum { UNKNOWN, AP, STA } WIFI_MODE;
 
 // Alarm interrupt flag must be volatile
-volatile bool lightState = false;
+extern volatile bool lightState;
 
 // Alarm interrupt flag must be volatile
-volatile bool manualLightState = false;
+extern volatile bool manualLightState;
 
 #define USER_BUTTON_PIN 16
 #define ALARM_TRIGGER_PIN 23

@@ -1,3 +1,5 @@
+#include "calculations.h"
+
 #include <math.h>
 
 #ifndef M_PI

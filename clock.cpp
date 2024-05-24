@@ -2,6 +2,8 @@
 #include <ErriezDS3231.h>
 #include <Wire.h>
 
+#include "clock.h"
+
 // rtc
 static ErriezDS3231 ds3231;
 
@@ -10,6 +12,9 @@ static const unsigned long startOfTime = 0 * 3600 + 0 * 60 + 0;
 
 // essentially 23:59:59 / one minute before midnight
 static const unsigned long endOfTime = 23 * 3600 + 59 * 60 + 59;
+
+// Alarm interrupt flag must be volatile
+volatile bool alarmInterrupt = false;
 
 #if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_ARCH_ESP32)
 ICACHE_RAM_ATTR

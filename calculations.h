@@ -12,6 +12,4 @@ double calculateSunrise(int year, int month, int day, double lat, double lng,
 double calculateSunset(int year, int month, int day, double lat, double lng,
                        int localOffset);
 
-#include "calculations.c"
-
 #endif // _ADDRESSLIGHT_CALCULATIONS_H

@@ -1,6 +1,7 @@
 #include <EEPROM.h>
 
-#include "sun/calculations.h"
+#include "calculations.h"
+#include "configdata.h"
 
 #define NUMBER_OF_DAYS 366
 

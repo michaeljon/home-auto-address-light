@@ -1,12 +1,13 @@
 #ifndef _ADDRESSLIGHT_CLOCK_H
 #define _ADDRESSLIGHT_CLOCK_H
 
-#include "../address-light.h"
+#include "address-light.h"
 
 // Alarm interrupt flag must be volatile
-volatile bool alarmInterrupt = false;
+extern volatile bool alarmInterrupt;
 
 bool getAlarm();
+void setAlarm();
 void clearAlarm();
 
 void initializeAlarms();
@@ -17,7 +18,5 @@ void initializeTime(long gmtOffset_sec, int daylightOffset_sec,
 
 bool timeIsInOnRange(unsigned long lightOnTime, unsigned long lightOffTime,
                      long gmtOffset_sec);
-
-#include "clock.c"
 
 #endif // _ADDRESSLIGHT_CLOCK_H

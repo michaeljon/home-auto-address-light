@@ -63,15 +63,6 @@
               .getElementById("configuration-type-manual")
               .setAttribute("checked", "checked");
             break;
-
-          case "always-on":
-            autoBlock.setAttribute("hidden", "hidden");
-            manualBlock.setAttribute("hidden", "hidden");
-
-            document
-              .getElementById("configuration-type-always-on")
-              .setAttribute("checked", "checked");
-            break;
         }
 
         return configuration;
@@ -141,13 +132,6 @@
         const manualBlock = document.getElementById(
           "manual-configuration-block"
         );
-
-        document
-          .getElementById("configuration-type-always-on")
-          .addEventListener("change", () => {
-            autoBlock.setAttribute("hidden", "hidden");
-            manualBlock.setAttribute("hidden", "hidden");
-          });
 
         document
           .getElementById("configuration-type-auto")
@@ -277,17 +261,6 @@
               value="manual"
             />
             Choose a fixed illumination schedule
-          </label>
-        </div>
-        <div class="mui-radio">
-          <label>
-            <input
-              type="radio"
-              name="configuration-type"
-              id="configuration-type-always-on"
-              value="always-on"
-            />
-            Leave light on always (may reduce sign's lifetime)
           </label>
         </div>
 

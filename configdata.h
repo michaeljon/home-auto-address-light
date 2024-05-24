@@ -3,8 +3,6 @@
 
 #include <EEPROM.h>
 
-#include "sun/calculations.h"
-
 #define SSID_SIZE 32
 #define KEY_SIZE 32
 
@@ -39,12 +37,11 @@ typedef struct {
 } CONFIGDATA;
 
 #define CONFIGDATA_SIZE sizeof(CONFIGDATA)
-
-#define MAGIC 'c'
+#define MAGIC 'd'
 
 void ensureConfigData();
 TRANSITION_TIME getTransitionTimeForDay(int year, int dayOfYear);
 
-#include "configdata.c"
+extern CONFIGDATA configData;
 
 #endif // _ADDRESSLIGHT_CONFIGDATA_H
