@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <link
+      href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+
+    <link
+      href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+
+    <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      // Or we can also use this event in this way
+      window.addEventListener("DOMContentLoaded", async () => {
+        const result = await fetch("/api/fw-version");
+        const config = await result.json();
+        const version = document.getElementById("version");
+        const date = document.getElementById("date");
+
+        version.textContent = config.version || "";
+        date.textContent = config.date || "";
+      });
+    </script>
+
+    <style>
+      body {
+        font-family: "Inter", "Helvetica Neue", Helvetica, Arial;
+        margin: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mui-container-fluid">
+      <div class="mui--text-dark-dark mui--text-display1">
+        <i class="fa fa-fw fa-cogs" aria-hidden="true"></i>Firmware update
+      </div>
+
+      <div style="height: 2em"></div>
+
+      <div class="mui--text-body1 mui--text-secondary">
+        Select the updated firmware release. Your device is currently running
+        version <strong id="version"></strong> dated
+        <strong id="date"></strong>.
+      </div>
+
+      <div style="height: 3em"></div>
+
+      <form class="mui-form">
+        <div class="mui-textfield mui-textfield">
+          <input type="file" name="firmware" accept=".bin,.hex" required />
+          <label>Firmware file (*.hex, *.bin)</label>
+        </div>
+        <button
+          type="submit"
+          class="mui-btn mui-btn mui-btn--raised mui-btn--primary"
+          disabled
+        >
+          Upload
+        </button>
+      </form>
+    </div>
+  </body>
+</html>
