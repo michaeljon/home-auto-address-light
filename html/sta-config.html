@@ -7,65 +7,77 @@
 
     <link rel="icon" type="image/png" href="favicon.png" />
 
-    <link
-      href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-      rel="stylesheet"
-      type="text/css"
-    />
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
 
-    <link
-      href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css"
-      rel="stylesheet"
-      type="text/css"
-    />
+    <link href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
     <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
 
     <style>
       body {
-        font-family: "Inter", "Helvetica Neue", Helvetica, Arial;
+        font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial;
         margin: 20px;
       }
     </style>
 
     <script defer>
       async function getConfiguration() {
-        const result = await fetch("/api/configuration");
+        const result = await fetch('/api/configuration');
         const configuration = await result.json();
 
         // set up the type handlers
-        const autoBlock = document.getElementById("auto-configuration-block");
-        const manualBlock = document.getElementById(
-          "manual-configuration-block"
-        );
+        const autoBlock = document.getElementById('auto-configuration-block');
+        const manualBlock = document.getElementById('manual-configuration-block');
 
         switch (configuration.configurationType) {
-          case "auto":
-            autoBlock.removeAttribute("hidden");
-            manualBlock.setAttribute("hidden", "hidden");
+          case 'auto':
+            autoBlock.removeAttribute('hidden');
+            manualBlock.setAttribute('hidden', 'hidden');
 
-            document
-              .getElementById("configuration-type-auto")
-              .setAttribute("checked", "checked");
+            document.getElementById('configuration-type-auto').setAttribute('checked', 'checked');
             break;
 
-          case "manual":
-            autoBlock.setAttribute("hidden", "hidden");
-            manualBlock.removeAttribute("hidden");
+          case 'manual':
+            autoBlock.setAttribute('hidden', 'hidden');
+            manualBlock.removeAttribute('hidden');
 
-            document
-              .getElementById("configuration-type-manual")
-              .setAttribute("checked", "checked");
+            document.getElementById('configuration-type-manual').setAttribute('checked', 'checked');
             break;
         }
 
         return configuration;
+      }
+
+      async function saveConfiguration() {
+        const json = {};
+
+        if (document.getElementById('configuration-type-auto').getAttribute('checked')) {
+          json['configurationType'] = 'auto';
+
+          json['latitude'] = document.getElementById('latitude').value;
+          json['latitude'] = document.getElementById('longitude').value;
+
+          json['timezone'] = document.getElementById('timezone').value;
+        } else {
+          json['configurationType'] = 'manual';
+
+          json['manualOn'] = document.getElementById('manual-on').value;
+          json['manualOff'] = document.getElementById('manual-off').value;
+        }
+
+        const result = await fetch('/api/configuration', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(json),
+        });
+
+        // todo - update all the values
+        const configuration = await result.json();
       }
 
       function configureTimezoneSelector(configuration) {
@@ -76,45 +88,44 @@
         };
 
         // get the current timezone offset
-        const timezone = document.getElementById("timezone");
+        const timezone = document.getElementById('timezone');
         const today = new Date();
         const dstInEffect = isDST(today);
 
         [
-          { z: "Eastern", o: -240 },
-          { z: "Central", o: -300 },
-          { z: "Mountain", o: -360 },
-          { z: "Pacific", o: -420 },
+          { z: 'Eastern', o: -240 },
+          { z: 'Central', o: -300 },
+          { z: 'Mountain', o: -360 },
+          { z: 'Pacific', o: -420 },
         ].forEach((v, i) => {
-          var onOption = document.createElement("option");
-          var offset = v["o"] + (dstInEffect ? 0 : -60);
+          var onOption = document.createElement('option');
+          var offset = v['o'] + (dstInEffect ? 0 : -60);
 
-          onOption.innerHTML = `${v["z"]} (UTC${offset / 60})`;
-          onOption.value = v["o"];
+          onOption.innerHTML = `${v['z']} (UTC${offset / 60})`;
+          onOption.value = v['o'];
           timezone.appendChild(onOption);
         });
 
-        timezone.value =
-          configuration.timezone || -1 * new Date().getTimezoneOffset();
+        timezone.value = configuration.timezone || -1 * new Date().getTimezoneOffset();
       }
 
       function addTimesToSelectors(configuration) {
         // set up the on / off times
-        const manualOn = document.getElementById("manual-on");
-        const manualOff = document.getElementById("manual-off");
+        const manualOn = document.getElementById('manual-on');
+        const manualOff = document.getElementById('manual-off');
 
         // Code to be executed when the DOM is ready
         for (let i = 0; i < 2; i++) {
           for (let h = 0; h < 12; h++) {
-            let time = h + "";
+            let time = h + '';
             if (h === 0) {
-              time = "12";
+              time = '12';
             }
 
-            time += i === 0 ? " AM" : " PM";
+            time += i === 0 ? ' AM' : ' PM';
 
             [manualOn, manualOff].forEach((el, idx) => {
-              var onOption = document.createElement("option");
+              var onOption = document.createElement('option');
               onOption.innerHTML = time;
               onOption.value = i * 60 * 12 + h * 60;
               el.appendChild(onOption);
@@ -128,114 +139,85 @@
 
       function configureTypeTogglers() {
         // set up the type handlers
-        const autoBlock = document.getElementById("auto-configuration-block");
-        const manualBlock = document.getElementById(
-          "manual-configuration-block"
-        );
+        const autoBlock = document.getElementById('auto-configuration-block');
+        const manualBlock = document.getElementById('manual-configuration-block');
 
-        document
-          .getElementById("configuration-type-auto")
-          .addEventListener("change", () => {
-            autoBlock.removeAttribute("hidden");
-            manualBlock.setAttribute("hidden", "hidden");
-          });
+        document.getElementById('configuration-type-auto').addEventListener('change', () => {
+          autoBlock.removeAttribute('hidden');
+          manualBlock.setAttribute('hidden', 'hidden');
+        });
 
-        document
-          .getElementById("configuration-type-manual")
-          .addEventListener("change", () => {
-            autoBlock.setAttribute("hidden", "hidden");
-            manualBlock.removeAttribute("hidden");
-          });
+        document.getElementById('configuration-type-manual').addEventListener('change', () => {
+          autoBlock.setAttribute('hidden', 'hidden');
+          manualBlock.removeAttribute('hidden');
+        });
       }
 
       function configureLocator() {
-        const geoerrors = [
-          undefined,
-          "Permission denied accessing APIs",
-          "Unable to locate your location",
-          "Timeout executing location request",
-        ];
+        const geoerrors = [undefined, 'Permission denied accessing APIs', 'Unable to locate your location', 'Timeout executing location request'];
 
         // if we support geolocation then default those values
         if (!navigator.geolocation) {
-          document.getElementById("messages").textContent =
-            "Geolocation is not supported by this browser.";
+          document.getElementById('messages').textContent = 'Geolocation is not supported by this browser.';
 
-          document
-            .getElementById("do-geo-location")
-            .setAttribute("hidden", "hidden");
+          document.getElementById('do-geo-location').setAttribute('hidden', 'hidden');
         }
 
-        document
-          .getElementById("do-geo-location")
-          .addEventListener("click", () => {
-            // now, get the location, but do this in the background
-            document.getElementById("messages").textContent =
-              "Looking for your coordinates, this might take a few minutes.";
+        document.getElementById('do-geo-location').addEventListener('click', () => {
+          // now, get the location, but do this in the background
+          document.getElementById('messages').textContent = 'Looking for your coordinates, this might take a few minutes.';
 
-            function getCoordinates(options) {
-              return new Promise((resolve, reject) =>
-                navigator.geolocation.getCurrentPosition(
-                  resolve,
-                  reject,
-                  options
-                )
-              );
-            }
+          function getCoordinates(options) {
+            return new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, options));
+          }
 
-            getCoordinates({
-              timeout: 300 * 1000,
-              maximumAge: 24 * 60 * 60 * 1000,
+          getCoordinates({
+            timeout: 300 * 1000,
+            maximumAge: 24 * 60 * 60 * 1000,
+          })
+            .then((position) => {
+              // write anything we happen to get, might get overwritten
+              document.getElementById('latitude').value = position.coords.latitude;
+              document.getElementById('longitude').value = position.coords.longitude;
+
+              document.getElementById('messages').textContent = '';
             })
-              .then((position) => {
-                // write anything we happen to get, might get overwritten
-                document.getElementById("latitude").value =
-                  position.coords.latitude;
-                document.getElementById("longitude").value =
-                  position.coords.longitude;
-
-                document.getElementById("messages").textContent = "";
-              })
-              .catch((err) => {
-                document.getElementById("messages").textContent =
-                  geoerrors[err.code];
-                return undefined;
-              });
-          });
+            .catch((err) => {
+              document.getElementById('messages').textContent = geoerrors[err.code];
+              return undefined;
+            });
+        });
       }
 
       // Or we can also use this event in this way
-      window.addEventListener("DOMContentLoaded", async () => {
+      window.addEventListener('DOMContentLoaded', async () => {
         const configuration = await getConfiguration();
 
         // write anything we happen to get, might get overwritten
-        document.getElementById("latitude").value =
-          configuration.latitude || "";
-        document.getElementById("longitude").value =
-          configuration.longitude || "";
+        document.getElementById('latitude').value = configuration.latitude || '';
+        document.getElementById('longitude').value = configuration.longitude || '';
 
         configureTimezoneSelector(configuration);
         addTimesToSelectors(configuration);
         configureTypeTogglers(configuration);
         configureLocator();
+
+        document.getElementById('do-save').addEventListener('click', () => {
+          saveConfiguration();
+        });
       });
     </script>
   </head>
 
   <body>
     <div class="mui-container-fluid">
-      <div class="mui--text-dark-dark mui--text-display1">
-        <i class="fa fa-fw fa-power-off" aria-hidden="true"></i>Lighting
-        configuration
-      </div>
+      <div class="mui--text-dark-dark mui--text-display1"><i class="fa fa-fw fa-power-off" aria-hidden="true"></i>Lighting configuration</div>
 
       <div style="height: 2em"></div>
 
       <div class="mui--text-body1 mui--text-secondary">
-        Configure the lighting details for your address sign. You can choose
-        between having the sign manage the on / off based on the sunrise and
-        sunset, setting a fixed on / off time of your choosing, or turning the
-        light on permanently.
+        Configure the lighting details for your address sign. You can choose between having the sign manage the on / off based on the sunrise and sunset, setting a fixed on / off
+        time of your choosing, or turning the light on permanently.
       </div>
 
       <div style="height: 3em"></div>
@@ -243,23 +225,13 @@
       <form class="mui-form">
         <div class="mui-radio">
           <label>
-            <input
-              type="radio"
-              name="configuration-type"
-              id="configuration-type-auto"
-              value="auto"
-            />
+            <input type="radio" name="configuration-type" id="configuration-type-auto" value="auto" />
             Automatically illuminate from sunset until sunrise
           </label>
         </div>
         <div class="mui-radio">
           <label>
-            <input
-              type="radio"
-              name="configuration-type"
-              id="configuration-type-manual"
-              value="manual"
-            />
+            <input type="radio" name="configuration-type" id="configuration-type-manual" value="manual" />
             Choose a fixed illumination schedule
           </label>
         </div>
@@ -294,17 +266,8 @@
           </div>
         </div>
 
-        <button type="submit" class="mui-btn mui-btn--raised mui-btn--primary">
-          Save
-        </button>
-
-        <button
-          type="button"
-          id="do-geo-location"
-          class="mui-btn mui-btn--raised"
-        >
-          Locate
-        </button>
+        <button type="button" id="do-save" class="mui-btn mui-btn--raised mui-btn--primary">Save</button>
+        <button type="button" id="do-geo-location" class="mui-btn mui-btn--raised">Locate</button>
       </form>
 
       <div id="messages" class="mui--text-danger"></div>

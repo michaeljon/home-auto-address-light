@@ -6,7 +6,7 @@
 #define NUMBER_OF_DAYS 366
 
 static volatile int yearComputed = 0;
-static TRANSITION_TIME autoTimes[NUMBER_OF_DAYS];
+static TransitionTimes autoTimes[NUMBER_OF_DAYS];
 
 static volatile bool configDataLoaded = false;
 CONFIGDATA configData;
@@ -42,8 +42,8 @@ void ensureConfigData() {
       strncpy(configData.ssid, "HouseOnHill", SSID_SIZE);
       strncpy(configData.key, "Marvel2021", KEY_SIZE);
 
-      configData.transitionOption = TRANSITION_OPTION::AUTO;
-      configData.timezoneOffset = -480 * 60; // seconds
+      configData.transitionOption = TransitionOption::Auto;
+      configData.timezoneOffset = -420 * 60; // seconds
       configData.timezoneAdjustment = 3600;  // seconds
 
       configData.latitude = 33.654732;
@@ -60,6 +60,15 @@ void ensureConfigData() {
     Serial.println("Config data loaded");
     configDataLoaded = true;
   }
+}
+
+void saveConfiguration() {
+  // save this
+  Serial.println("Writing default values to EEPROM");
+  EEPROM.writeBytes(0, &configData, CONFIGDATA_SIZE);
+  EEPROM.commit();
+
+  Serial.println("Updated config data in EEPROM");
 }
 
 static void computeTransitionTimes(int year) {
@@ -103,7 +112,7 @@ static void computeTransitionTimes(int year) {
   }
 }
 
-TRANSITION_TIME getTransitionTimeForDay(int year, int dayOfYear) {
+TransitionTimes getTransitionTimeForDay(int year, int dayOfYear) {
   Serial.printf("Getting transition times for day %03d %03d\n", year,
                 dayOfYear);
 

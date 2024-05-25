@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+if [[ ! -d keys ]]; then
+    mkdir -p keys
+fi
+
+openssl req \
+    -x509 \
+    -newkey rsa:1024 \
+    -nodes \
+    -keyout keys/server.key \
+    -out keys/server.crt \
+    -sha256 \
+    -days 3650 \
+    -subj '/CN=MJ Home Automation/C=US'
+
+rm -f keys.h
+
+echo "#ifndef _ADDRESSLIGHT_KEYS_H" >keys.h
+echo "#define _ADDRESSLIGHT_KEYS_H" >>keys.h
+echo "" >>keys.h
+
+awk 'BEGIN { print "const char server_cert[] = " } { if ($0 == "-----END CERTIFICATE-----") trail = ";"; else trail = ""; print "\042" $0 "\\n\042" trail }' keys/server.crt >>keys.h
+
+echo "" >>keys.h
+
+awk 'BEGIN { print "const char server_key[] = " } { if ($0 == "-----END PRIVATE KEY-----") trail = ";"; else trail = ""; print "\042" $0 "\\n\042" trail }' keys/server.key >>keys.h
+
+echo "" >>keys.h
+echo "#endif // _ADDRESSLIGHT_KEYS_H" >>keys.h

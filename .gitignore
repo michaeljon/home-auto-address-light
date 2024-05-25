@@ -3,3 +3,7 @@ build
 
 html/api
 html/*.pem
+
+keys/server.crt
+keys/server.key
+keys.h

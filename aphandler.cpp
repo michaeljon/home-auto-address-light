@@ -1,18 +1,20 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-#ifdef ESP32
-#include <AsyncTCP.h>
+#include <PsychicHttp.h>
+#include <PsychicHttpsServer.h>
+
 #include <WiFi.h>
-#elif defined(ESP8266)
-#include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
-#endif
-#include <ESPAsyncWebServer.h>
+
+#include "configdata.h"
 
 #include "htmldata.h"
 
-void notFound(AsyncWebServerRequest *request);
+#ifdef PSY_ENABLE_SSL
+extern PsychicHttpsServer server;
+#else
+extern PsychicHttpServer server;
+#endif
 
 static char dec2hexchar(byte dec) {
   if (dec < 10)
@@ -35,32 +37,78 @@ static String get_ap_ssid() {
   return ap_ssid;
 }
 
-void doAccessPointSetup(AsyncWebServer server) {
+void doAccessPointWifiSetup() {
   Serial.println("Inside AP setup...");
 
   // todo: get a better name for this, to include the MAC
   WiFi.mode(WIFI_AP);
   WiFi.softAP(get_ap_ssid(), "homeauto");
   Serial.println(WiFi.softAPIP());
+}
 
+void doAccessPointSetup() {
   // set up the pages
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    Serial.println("Request for /");
+  server.on("/favicon.ico", HTTP_GET, [](PsychicRequest *request) {
+    Serial.println("Request for /favicon.ico");
 
-    AsyncWebServerResponse *response = request->beginResponse_P(
-        200, "image/x-icon", ApConfigHtml, ApConfigHtml_len);
-    response->addHeader("Content-Type", "text/html");
-    response->addHeader("Content-Encoding", "gzip");
-    request->send(response);
+    PsychicResponse response(request);
+
+    response.setContentType("image/x-icon");
+    response.setContent(FavIconPng, FavIconPng_len);
+
+    return response.send();
   });
 
-  server.on("/favicon.png", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/favicon.png", HTTP_GET, [](PsychicRequest *request) {
     Serial.println("Request for /favicon.png");
 
-    AsyncWebServerResponse *response = request->beginResponse_P(
-        200, "image/x-icon", FavIconPng, FavIconPng_len);
-    request->send(response);
+    PsychicResponse response(request);
+
+    response.setContentType("image/png");
+    response.setContent(FavIconPng, FavIconPng_len);
+
+    return response.send();
   });
-  server.onNotFound(notFound);
-  server.begin();
+
+  server.on("/", HTTP_GET, [](PsychicRequest *request) {
+    Serial.println("Request for /");
+
+    PsychicResponse response(request);
+
+    response.addHeader("Content-Encoding", "gzip");
+    response.setContentType("text/html");
+    response.setContent(ApConfigHtml, ApConfigHtml_len);
+
+    return response.send();
+  });
+
+  server.on("/api/ap", HTTP_POST, [](PsychicRequest *request) {
+    Serial.println("Request for /api/ap");
+
+    //load our JSON request
+    JsonDocument json;
+    String body = request->body();
+    DeserializationError err = deserializeJson(json, body);
+
+    // json has our configuration stuff here
+    if (!json.containsKey("ssid") || !json.containsKey("password")) {
+      return request->reply(400, "application/json",
+                            "{ \"error\": \"missing values\" }");
+    }
+
+    strncpy(configData.ssid, json["ssid"], SSID_SIZE);
+    strncpy(configData.key, json["password"], KEY_SIZE);
+
+    saveConfiguration();
+
+    json.clear();
+
+    json["ssid"] = configData.ssid;
+    json["password"] = configData.key;
+
+    //serialize and return
+    String jsonBuffer;
+    serializeJson(json, jsonBuffer);
+    return request->reply(200, "application/json", jsonBuffer.c_str());
+  });
 }

@@ -7,65 +7,73 @@
 
     <link rel="icon" type="image/png" href="favicon.png" />
 
-    <link
-      href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-      rel="stylesheet"
-      type="text/css"
-    />
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
 
-    <link
-      href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css"
-      rel="stylesheet"
-      type="text/css"
-    />
+    <link href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
 
     <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
 
     <style>
       body {
-        font-family: "Inter", "Helvetica Neue", Helvetica, Arial;
+        font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial;
         margin: 20px;
       }
     </style>
+
+    <script defer>
+      async function saveConfiguration() {
+        const json = {
+          ssid: document.getElementById('ssid').nodeValue,
+          password: document.getElementById('password').nodeValue,
+        };
+
+        const result = await fetch('/api/ap', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(json),
+        });
+
+        // to-do... reset?
+        const configuration = await result.json();
+      }
+
+      // Or we can also use this event in this way
+      window.addEventListener('DOMContentLoaded', async () => {
+        document.getElementById('do-save').addEventListener('click', () => {
+          saveConfiguration();
+        });
+      });
+    </script>
   </head>
   <body>
     <div class="mui-container-fluid">
-      <div class="mui--text-dark-dark mui--text-display1">
-        <i class="fa fa-fw fa-wifi" aria-hidden="true"></i>WiFi configuration
-      </div>
+      <div class="mui--text-dark-dark mui--text-display1"><i class="fa fa-fw fa-wifi" aria-hidden="true"></i>WiFi configuration</div>
 
       <div style="height: 2em"></div>
 
       <div class="mui--text-body1 mui--text-secondary">
-        Configure your WiFi network. You'll need your SSID (network name) and
-        the password to continue. If you do not have a password, leave the field
-        blank (but you really should have one).
+        Configure your WiFi network. You'll need your SSID (network name) and the password to continue. If you do not have a password, leave the field blank (but you really should
+        have one).
       </div>
 
       <div style="height: 3em"></div>
 
       <form class="mui-form">
         <div class="mui-textfield mui-textfield">
-          <input type="text" name="ssid" required />
+          <input type="text" id="ssid" name="ssid" required />
           <label>SSID</label>
         </div>
         <div class="mui-textfield mui-textfield">
-          <input type="password" name="password" required />
+          <input type="password" id="password" name="password" required />
           <label>Password</label>
         </div>
-        <button
-          type="submit"
-          class="mui-btn mui-btn mui-btn--raised mui-btn--primary"
-        >
-          Save
-        </button>
+        <button type="button" id="do-save" class="mui-btn mui-btn mui-btn--raised mui-btn--primary">Save</button>
       </form>
     </div>
   </body>

@@ -6,12 +6,12 @@
 #define SSID_SIZE 32
 #define KEY_SIZE 32
 
-typedef enum { AUTO, MANUAL } TRANSITION_OPTION;
+typedef enum { Auto, Manual } TransitionOption;
 
 typedef struct {
   unsigned long on;
   unsigned long off;
-} TRANSITION_TIME;
+} TransitionTimes;
 
 typedef struct {
   char magic[4];
@@ -21,10 +21,10 @@ typedef struct {
   char key[KEY_SIZE + 1];
 
   // choice for controlling the light
-  TRANSITION_OPTION transitionOption;
+  TransitionOption transitionOption;
 
   // optional
-  TRANSITION_TIME manualTime;
+  TransitionTimes manualTimes;
 
   // selected timezone offset (in seconds)
   short timezoneOffset;
@@ -40,7 +40,9 @@ typedef struct {
 #define MAGIC 'd'
 
 void ensureConfigData();
-TRANSITION_TIME getTransitionTimeForDay(int year, int dayOfYear);
+void saveConfiguration();
+
+TransitionTimes getTransitionTimeForDay(int year, int dayOfYear);
 
 extern CONFIGDATA configData;
 
