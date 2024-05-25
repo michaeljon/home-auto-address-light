@@ -12,7 +12,8 @@ openssl req \
     -out keys/server.crt \
     -sha256 \
     -days 3650 \
-    -subj '/CN=MJ Home Automation/C=US'
+    -subj '/CN=MJ Home Automation/C=US' \
+    -addext "subjectAltName = DNS:addresslight.local"
 
 rm -f keys.h
 

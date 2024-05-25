@@ -11,8 +11,6 @@ static TransitionTimes autoTimes[NUMBER_OF_DAYS];
 static volatile bool configDataLoaded = false;
 CONFIGDATA configData;
 
-#define MAGIC 'c'
-
 void ensureConfigData() {
   Serial.println("Ensuring config data is loaded");
 

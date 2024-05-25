@@ -37,7 +37,7 @@ typedef struct {
 } CONFIGDATA;
 
 #define CONFIGDATA_SIZE sizeof(CONFIGDATA)
-#define MAGIC 'd'
+#define MAGIC 'e'
 
 void ensureConfigData();
 void saveConfiguration();

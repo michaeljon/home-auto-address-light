@@ -80,6 +80,30 @@ void toggleButton_releasedCallback(uint8_t pinIn) {
   Serial.printf("lightState == %d\n", lightState);
 }
 
+//
+// TODO: move these somewhere else
+//
+static char dec2hexchar(byte dec) {
+  if (dec < 10)
+    return '0' + dec;
+  else
+    return 'A' + (dec - 10);
+}
+
+static String get_ota_host() {
+  static String ap_ssid;
+  if (!ap_ssid.length()) {
+    byte mac[6];
+    WiFi.macAddress(mac);
+    ap_ssid = "ALIGHT_";
+    for (byte i = 3; i < 6; i++) {
+      ap_ssid += dec2hexchar((mac[i] >> 4) & 0x0F);
+      ap_ssid += dec2hexchar(mac[i] & 0x0F);
+    }
+  }
+  return ap_ssid;
+}
+
 void setup() {
   Serial.begin(115200);
   while (!Serial) {
@@ -152,11 +176,30 @@ void setup() {
 
   Serial.println("Wifi configured, enabling OTA");
   ArduinoOTA.setPort(3232);
-  ArduinoOTA.setHostname("addresslight");
+  ArduinoOTA.setHostname(get_ota_host().c_str());
 
   // this is !!Frogger0 hashed, for now
   ArduinoOTA.setPasswordHash("6997a0231010f0e1fc6008d6a77e3756");
 
+  ArduinoOTA.onStart([]() {
+    Serial.println("Start");
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  });
   ArduinoOTA.begin();
 
   Serial.println("Configuring HTTP(S) server");
