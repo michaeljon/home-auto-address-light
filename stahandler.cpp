@@ -31,7 +31,7 @@ void doStationWifiSetup() {
     Serial.printf("WiFi Failed!\n");
     return;
   }
-  WiFi.enableIpV6();
+  WiFi.enableIPv6();
 
   //set up our esp32 to listen on the local_hostname.local domain
   if (!MDNS.begin("addresslight")) {

@@ -305,9 +305,6 @@ void handleAlarm() {
       _lightState = false;
     }
 
-    // clear the alarm
-    alarmInterrupt = false;
-
     Serial.printf("_lightState = %d\n", _lightState);
 
     // check if the light should physically change state
@@ -347,6 +344,9 @@ void loop() {
   // only listen to alarms if we're not manually running
   if (manualLightState == false) {
     handleAlarm();
+
+    // clear the alarm
+    alarmInterrupt = false;
   }
 
   handleLightState();
