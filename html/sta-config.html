@@ -58,7 +58,7 @@
           json['configurationType'] = 'auto';
 
           json['latitude'] = document.getElementById('latitude').value;
-          json['latitude'] = document.getElementById('longitude').value;
+          json['longitude'] = document.getElementById('longitude').value;
 
           json['timezone'] = document.getElementById('timezone').value;
         } else {
@@ -81,32 +81,22 @@
       }
 
       function configureTimezoneSelector(configuration) {
-        const isDST = (d) => {
-          let jan = new Date(d.getFullYear(), 0, 1).getTimezoneOffset();
-          let jul = new Date(d.getFullYear(), 6, 1).getTimezoneOffset();
-          return Math.max(jan, jul) !== d.getTimezoneOffset();
-        };
-
         // get the current timezone offset
         const timezone = document.getElementById('timezone');
-        const today = new Date();
-        const dstInEffect = isDST(today);
 
         [
-          { z: 'Eastern', o: -240 },
-          { z: 'Central', o: -300 },
-          { z: 'Mountain', o: -360 },
-          { z: 'Pacific', o: -420 },
+          { z: 'America/New_York', o: 'EST5EDT,M3.2.0,M11.1.0' },
+          { z: 'America/Chicago', o: 'CST6CDT,M3.2.0,M11.1.0' },
+          { z: 'America/Denver', o: 'MST7MDT,M3.2.0,M11.1.0' },
+          { z: 'America/Los_Angeles', o: 'PST8PDT,M3.2.0,M11.1.0' },
         ].forEach((v, i) => {
           var onOption = document.createElement('option');
-          var offset = v['o'] + (dstInEffect ? 0 : -60);
-
-          onOption.innerHTML = `${v['z']} (UTC${offset / 60})`;
+          onOption.innerHTML = `${v['z']} (${v['o']})`;
           onOption.value = v['o'];
           timezone.appendChild(onOption);
         });
 
-        timezone.value = configuration.timezone || -1 * new Date().getTimezoneOffset();
+        timezone.value = configuration.timezone || 'PST8PDT,M3.2.0,M11.1.0';
       }
 
       function addTimesToSelectors(configuration) {
@@ -142,12 +132,18 @@
         const autoBlock = document.getElementById('auto-configuration-block');
         const manualBlock = document.getElementById('manual-configuration-block');
 
-        document.getElementById('configuration-type-auto').addEventListener('change', () => {
+        document.getElementById('configuration-type-auto').addEventListener('click', (e) => {
+          document.getElementById('configuration-type-auto').setAttribute('checked', 'checked');
+          document.getElementById('configuration-type-manual').removeAttribute('checked');
+
           autoBlock.removeAttribute('hidden');
           manualBlock.setAttribute('hidden', 'hidden');
         });
 
-        document.getElementById('configuration-type-manual').addEventListener('change', () => {
+        document.getElementById('configuration-type-manual').addEventListener('click', (e) => {
+          document.getElementById('configuration-type-auto').removeAttribute('checked');
+          document.getElementById('configuration-type-manual').setAttribute('checked', 'checked');
+
           autoBlock.setAttribute('hidden', 'hidden');
           manualBlock.removeAttribute('hidden');
         });

@@ -8,12 +8,15 @@ if ! command -v html-minifier &>/dev/null; then
     npm install html-minifier -g
 fi
 
+MINIFIER_OPTIONS="--collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true --keep-closing-slash"
+# MINIFIER_OPTIONS=""
+
 #
 # index.html
 #
 
 cat html/index.html |
-    html-minifier --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true --keep-closing-slash |
+    html-minifier ${MINIFIER_OPTIONS} |
     gzip |
     xxd -i -n IndexHtml |
     sed '1s/^/#include "htmldata.h" \n\n/' |
@@ -24,7 +27,7 @@ cat html/index.html |
 #
 
 cat html/ap-config.html |
-    html-minifier --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true --keep-closing-slash |
+    html-minifier ${MINIFIER_OPTIONS} |
     gzip |
     xxd -i -n ApConfigHtml |
     sed '1s/^/#include "htmldata.h" \n\n/' |
@@ -35,7 +38,7 @@ cat html/ap-config.html |
 #
 
 cat html/sta-config.html |
-    html-minifier --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true --keep-closing-slash |
+    html-minifier ${MINIFIER_OPTIONS} |
     gzip |
     xxd -i -n StaConfigHtml |
     sed '1s/^/#include "htmldata.h" \n\n/' |

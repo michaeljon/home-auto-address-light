@@ -13,9 +13,7 @@ void clearAlarm();
 void initializeAlarms();
 void initializeClock();
 
-void initializeTime(long gmtOffset_sec, int daylightOffset_sec,
-                    const char *ntpServer);
-
+void initializeTime(char const *timezone, const char *ntpServer);
 bool timeIsInOnRange(unsigned long lightOnTime, unsigned long lightOffTime,
                      long gmtOffset_sec);
 

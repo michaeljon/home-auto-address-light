@@ -66,18 +66,17 @@ void initializeClock() {
   ds3231.alarmInterruptEnable(Alarm2, false);
 }
 
-void initializeTime(long gmtOffset_sec, int daylightOffset_sec,
-                    const char *ntpServer) {
+void initializeTime(const char *timezone, const char *ntpServer) {
   struct tm timeinfo;
 
   // Init and get the time
-  Serial.println("calling configTime()");
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  Serial.printf("calling configTime(%s, %s)\n", timezone, ntpServer);
+  configTzTime(timezone, ntpServer);
   delay(100);
 
   Serial.println("calling getLocalTime()");
   while (!getLocalTime(&timeinfo)) {
-    Serial.println("Failed to obtain time");
+    Serial.println("initializeTime() Failed to obtain time, will retry");
     delay(3000);
   }
 
@@ -94,31 +93,37 @@ void initializeTime(long gmtOffset_sec, int daylightOffset_sec,
 
 bool timeIsInOnRange(unsigned long lightOnTime, unsigned long lightOffTime,
                      long gmtOffset_sec) {
+
+  Serial.printf("timeIsInOnRange(%d, %d, %d)\n", lightOnTime, lightOffTime,
+                gmtOffset_sec);
+
   struct tm timeinfo;
 
   // get the current time of day from the struct
   while (!getLocalTime(&timeinfo)) {
-    Serial.println("Failed to obtain time");
+    Serial.println("timeIsInOnRange() Failed to obtain time, will retry");
     delay(3000);
   }
 
   unsigned long currentTime =
-      timeinfo.tm_hour * 3600 + timeinfo.tm_min * 60 + timeinfo.tm_sec;
+      (timeinfo.tm_hour * 3600) + (timeinfo.tm_min * 60) + timeinfo.tm_sec;
 
-  // Serial.printf("current time: %02d:%02d:%02d\n", timeinfo.tm_hour,
-  //               timeinfo.tm_min, timeinfo.tm_sec);
+  Serial.printf("current time: %02d:%02d:%02d dst=%d\n", timeinfo.tm_hour,
+                timeinfo.tm_min, timeinfo.tm_sec, timeinfo.tm_isdst);
 
-  // Serial.printf("current time: %ld\n", currentTime);
-  // Serial.printf("lightOnTime: %ld\n", lightOnTime);
-  // Serial.printf("lightOffTime: %ld\n", lightOffTime);
+  Serial.printf("current time: %ld\n", currentTime);
+  Serial.printf("lightOnTime: %ld\n", lightOnTime);
+  Serial.printf("lightOffTime: %ld\n", lightOffTime);
 
   if (lightOffTime < lightOnTime) {
     // normal case, lights go on in the "evening", we check if the current time
     // is between the ON time and midnight-1 or between midnight and the OFF time
+    Serial.printf("Checking for evening-on, morning-off\n");
     return ((lightOnTime <= currentTime && currentTime <= endOfTime) ||
             (startOfTime <= currentTime && currentTime <= lightOffTime));
   } else {
     // inverted case, lights go on in the "morning"
+    Serial.printf("Checking for inverted on/off\n");
     return (lightOnTime <= currentTime && currentTime <= lightOffTime);
   }
 }

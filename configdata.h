@@ -1,10 +1,15 @@
 #ifndef _ADDRESSLIGHT_CONFIGDATA_H
 #define _ADDRESSLIGHT_CONFIGDATA_H
 
-#include <EEPROM.h>
+#include <Preferences.h>
 
 #define SSID_SIZE 32
 #define KEY_SIZE 32
+#define TIMEZONE_SIZE 32
+
+#define PREFS_MODE false
+#define PREFS_STORE_KEY "preferences"
+#define PREFS_ITEM_KEY "config-data"
 
 typedef enum { Auto, Manual } TransitionOption;
 
@@ -14,7 +19,7 @@ typedef struct {
 } TransitionTimes;
 
 typedef struct {
-  char magic[4];
+  unsigned long magic;
 
   // wifi settings
   char ssid[SSID_SIZE + 1];
@@ -27,7 +32,8 @@ typedef struct {
   TransitionTimes manualTimes;
 
   // selected timezone offset (in seconds)
-  short timezoneOffset;
+  char timezone[TIMEZONE_SIZE + 1];
+
   // seconds to add / subtract for DST (typically 3600 seconds)
   short timezoneAdjustment;
 
@@ -37,9 +43,10 @@ typedef struct {
 } CONFIGDATA;
 
 #define CONFIGDATA_SIZE sizeof(CONFIGDATA)
-#define MAGIC 'e'
+#define MAGIC 1001
 
 void ensureConfigData();
+void printConfigData();
 void saveConfiguration();
 
 TransitionTimes getTransitionTimeForDay(int year, int dayOfYear);

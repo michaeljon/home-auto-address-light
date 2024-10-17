@@ -113,14 +113,8 @@ void setup() {
   Wire.begin();
   Wire.setClock(400000);
 
-  // need somewhere to read / write, so init here
-  Serial.println("Initializing EEPROM");
-  if (EEPROM.begin(CONFIGDATA_SIZE) == false) {
-    Serial.println("Unable to initialize EEPROM");
-    return;
-  }
-
   ensureConfigData();
+  printConfigData();
 
   // button stuff
   Serial.println("Setting the configuration button");
@@ -181,12 +175,8 @@ void setup() {
   // this is !!Frogger0 hashed, for now
   ArduinoOTA.setPasswordHash("6997a0231010f0e1fc6008d6a77e3756");
 
-  ArduinoOTA.onStart([]() {
-    Serial.println("Start");
-  });
-  ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
-  });
+  ArduinoOTA.onStart([]() { Serial.println("Start"); });
+  ArduinoOTA.onEnd([]() { Serial.println("\nEnd"); });
 
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
@@ -194,11 +184,16 @@ void setup() {
 
   ArduinoOTA.onError([](ota_error_t error) {
     Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    if (error == OTA_AUTH_ERROR)
+      Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR)
+      Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR)
+      Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR)
+      Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR)
+      Serial.println("End Failed");
   });
   ArduinoOTA.begin();
 
@@ -262,8 +257,7 @@ void setup() {
                        InputDebounce::PIM_EXT_PULL_UP_RES);
 
     initializeClock();
-    initializeTime(configData.timezoneOffset, configData.timezoneAdjustment,
-                   ntpServer);
+    initializeTime(configData.timezone, ntpServer);
 
     initializeAlarms();
     setAlarm();
@@ -287,13 +281,18 @@ void handleAlarm() {
 
     struct tm timeinfo;
     while (!getLocalTime(&timeinfo)) {
-      Serial.println("Failed to obtain time");
+      Serial.println("handleAlarm() Failed to obtain time, will retry");
       delay(3000);
     }
 
     bool _lightState = lightState;
     TransitionTimes transitionTime =
-        getTransitionTimeForDay(timeinfo.tm_year + 1900, timeinfo.tm_yday);
+        configData.transitionOption == TransitionOption::Auto
+            ? getTransitionTimeForDay(timeinfo.tm_year + 1900, timeinfo.tm_yday)
+            : configData.manualTimes;
+
+    Serial.printf("on time: %d off-time %d\n", transitionTime.on,
+                  transitionTime.off);
 
     // check if the light should be on (after _ON_ but before _OFF_)
     if (timeIsInOnRange(transitionTime.on, transitionTime.off,
@@ -320,6 +319,8 @@ void handleAlarm() {
     Serial.printf("(exit) alarmInterrupt = %d\n", alarmInterrupt);
 
     clearAlarm();
+  } else {
+    // Serial.printf("(bypass) alarmInterrupt = %d\n", alarmInterrupt);
   }
 }
 

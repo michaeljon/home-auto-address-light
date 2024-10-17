@@ -25,14 +25,22 @@ void doStationWifiSetup() {
   Serial.print("Connecting to ");
   Serial.println(configData.ssid);
 
+  Serial.println("Setting WiFi mode to WIFI_STA");
   WiFi.mode(WIFI_STA);
+
+  Serial.println("Calling WiFi.begin with configuration data");
   WiFi.begin(configData.ssid, configData.key);
+
+  Serial.println("Waiting for WiFi to flag connection");
   if (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.printf("WiFi Failed!\n");
     return;
   }
+
+  Serial.println("Enabling IPv6");
   WiFi.enableIPv6();
 
+  Serial.println("Connected to WiFi, starting mDNS and http");
   //set up our esp32 to listen on the local_hostname.local domain
   if (!MDNS.begin("addresslight")) {
     Serial.println("Error starting mDNS");
@@ -82,10 +90,7 @@ void doStationSetup() {
 
     json["manualOn"] = configData.manualTimes.on;
     json["manualOff"] = configData.manualTimes.off;
-
-    // the UI wants to see timezone offsets in minutes
-    json["timezone"] = (int)(configData.timezoneOffset / 60);
-
+    json["timezone"] = configData.timezone;
     json["latitude"] = configData.latitude;
     json["longitude"] = configData.longitude;
 
@@ -112,8 +117,7 @@ void doStationSetup() {
               "{ \"error\": \"missing automatic configuration values\" }");
         }
 
-        configData.timezoneOffset = atoi(json["timezone"]) * 60;
-
+        strncpy(configData.timezone, json["timezone"], TIMEZONE_SIZE);
         configData.latitude = atof(json["latitude"]);
         configData.longitude = atof(json["longitude"]);
 
@@ -124,6 +128,10 @@ void doStationSetup() {
                                 "{ \"error\": \"missing manual times\" }");
         }
 
+        // time comes into the device in minutes-since-midnight, adjust that to seconds
+        configData.manualTimes.on = atoi(json["manualOn"]) * 60;
+        configData.manualTimes.off = atoi(json["manualOff"]) * 60;
+
         configData.transitionOption = TransitionOption::Manual;
       } else {
         return request->reply(400, "application/json",
@@ -131,18 +139,17 @@ void doStationSetup() {
       }
     }
 
+    saveConfiguration();
+
     json.clear();
 
     json["configurationType"] =
         configData.transitionOption == TransitionOption::Auto ? "auto"
                                                               : "manual";
 
-    json["manualOn"] = configData.manualTimes.on;
-    json["manualOff"] = configData.manualTimes.off;
-
-    // the UI wants to see timezone offsets in minutes
-    json["timezone"] = (int)(configData.timezoneOffset / 60);
-
+    json["manualOn"] = (int)(configData.manualTimes.on / 60);
+    json["manualOff"] = (int)(configData.manualTimes.off / 60);
+    json["timezone"] = configData.timezone;
     json["latitude"] = configData.latitude;
     json["longitude"] = configData.longitude;
 
