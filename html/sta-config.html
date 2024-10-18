@@ -59,7 +59,6 @@
 
           json['latitude'] = document.getElementById('latitude').value;
           json['longitude'] = document.getElementById('longitude').value;
-
           json['timezone'] = document.getElementById('timezone').value;
         } else {
           json['configurationType'] = 'manual';
@@ -67,6 +66,8 @@
           json['manualOn'] = document.getElementById('manual-on').value;
           json['manualOff'] = document.getElementById('manual-off').value;
         }
+
+        console.dir(json);
 
         const result = await fetch('/api/configuration', {
           method: 'POST',

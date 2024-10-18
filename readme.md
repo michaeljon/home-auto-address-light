@@ -25,4 +25,8 @@ arduino-cli compile -b esp32:esp32:esp32 --log --output-dir ./build
 
 # upload (use Discovery to find address for _arduino._tcp - ALIGHT_xxx)
 arduino-cli upload --protocol network --port <addr> --fqbn esp32:esp32:esp32 --verbose --upload-field password='<pwd>'
+
+# or upload directly
+arduino-cli compile -b esp32:esp32:esp32 --log --output-dir ./build --port /dev/ttyUSB0 --upload
+
 ```
