@@ -24,6 +24,8 @@
     </style>
 
     <script defer>
+      var lampStatus = 'off';
+
       async function getConfiguration() {
         const result = await fetch('/api/configuration');
         const configuration = await result.json();
@@ -79,6 +81,60 @@
 
         // todo - update all the values
         const configuration = await result.json();
+      }
+
+      function setLampButton() {
+        // set up the type handlers
+        const lampButton = document.getElementById('toggle-light');
+
+        switch (lampStatus) {
+          case 'on':
+            lampButton.innerHTML = 'Turn off lamp';
+            break;
+
+          case 'off':
+            lampButton.innerHTML = 'Turn on lamp';
+            break;
+        }
+      }
+
+      async function toggleLamp() {
+        lampStatus = lampStatus === 'on' ? 'off' : 'on';
+
+        const json = {
+          lamp: lampStatus,
+        };
+
+        const result = await fetch('/api/lamp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(json),
+        });
+
+        const configuration = await result.json();
+
+        // do the lamp thing
+        setLampButton(configuration.lamp);
+      }
+
+      async function getLampStatus() {
+        const result = await fetch('/api/lamp');
+        const configuration = await result.json();
+
+        lampStatus = configuration.lamp;
+        setLampButton();
+        return configuration.lamp;
+      }
+
+      function configureLampHandler() {
+        // do the lamp thing
+        setLampButton();
+
+        document.getElementById('toggle-light').addEventListener('click', () => {
+          toggleLamp();
+        });
       }
 
       function configureTimezoneSelector(configuration) {
@@ -189,6 +245,7 @@
       // Or we can also use this event in this way
       window.addEventListener('DOMContentLoaded', async () => {
         const configuration = await getConfiguration();
+        lampStatus = await getLampStatus();
 
         // write anything we happen to get, might get overwritten
         document.getElementById('latitude').value = configuration.latitude || '';
@@ -198,6 +255,7 @@
         addTimesToSelectors(configuration);
         configureTypeTogglers(configuration);
         configureLocator();
+        configureLampHandler();
 
         document.getElementById('do-save').addEventListener('click', () => {
           saveConfiguration();
@@ -265,6 +323,7 @@
 
         <button type="button" id="do-save" class="mui-btn mui-btn--raised mui-btn--primary">Save</button>
         <button type="button" id="do-geo-location" class="mui-btn mui-btn--raised">Locate</button>
+        <button type="button" id="toggle-light" class="mui-btn mui-btn--raised mui-btn--accent">Turn on light</button>
       </form>
 
       <div id="messages" class="mui--text-danger"></div>

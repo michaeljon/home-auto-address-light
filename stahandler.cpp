@@ -7,6 +7,7 @@
 
 #include <WiFi.h>
 
+#include "address-light.h"
 #include "configdata.h"
 
 // html data
@@ -74,6 +75,47 @@ void doStationSetup() {
     response.setContent(FavIconPng, FavIconPng_len);
 
     return response.send();
+  });
+
+  server.on("/api/lamp", HTTP_GET, [](PsychicRequest *request) {
+    Serial.println("Request for /api/lamp");
+
+    PsychicResponse response(request);
+
+    JsonDocument json;
+
+    json["lamp"] = lightState == true ? "on" : "off";
+
+    //serialize and return
+    String jsonBuffer;
+    serializeJson(json, jsonBuffer);
+    return request->reply(200, "application/json", jsonBuffer.c_str());
+  });
+
+  server.on("/api/lamp", HTTP_POST, [](PsychicRequest *request) {
+    Serial.println("Request for /api/lamp");
+
+    //load our JSON request
+    JsonDocument json;
+    String body = request->body();
+    DeserializationError err = deserializeJson(json, body);
+
+    if (json.containsKey("lamp") == false) {
+      return request->reply(400, "application/json",
+                            "{ \"error\": \"missing lamp status\" }");
+    }
+
+    lightState = (strcmp(json["lamp"], "on") == 0);
+    manualLightState = (strcmp(json["lamp"], "on") == 0);
+
+    json.clear();
+
+    json["lamp"] = lightState == true ? "on" : "off";
+
+    //serialize and return
+    String jsonBuffer;
+    serializeJson(json, jsonBuffer);
+    return request->reply(200, "application/json", jsonBuffer.c_str());
   });
 
   // set up the apis
